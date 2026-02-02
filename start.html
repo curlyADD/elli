@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Birthday One-File</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --glass: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh;
+      display:grid; place-items:center;
+      color:var(--text);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      overflow:hidden;
+      background:
+        radial-gradient(1200px 800px at 15% 20%, rgba(125,92,255,.55), transparent 60%),
+        radial-gradient(900px 700px at 85% 30%, rgba(0,209,255,.45), transparent 55%),
+        radial-gradient(900px 700px at 70% 85%, rgba(255,77,205,.35), transparent 55%),
+        linear-gradient(180deg, #070914 0%, #05061a 60%, #020311 100%);
+    }
+
+    canvas#fx{
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100%;
+      z-index:0;
+      pointer-events:none;
+      opacity:0;
+      transition: opacity .35s ease;
+    }
+
+    .card{
+      width:min(920px, 92vw);
+      padding: clamp(22px, 4vw, 46px);
+      border-radius: 30px;
+      background: linear-gradient(180deg, var(--glass), rgba(255,255,255,.06));
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      position:relative;
+      overflow:hidden;
+      z-index:1;
+    }
+    .spark{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(2px 2px at 12% 30%, rgba(255,255,255,.85), transparent 55%),
+        radial-gradient(2px 2px at 22% 70%, rgba(255,255,255,.70), transparent 55%),
+        radial-gradient(2px 2px at 55% 35%, rgba(255,255,255,.80), transparent 55%),
+        radial-gradient(2px 2px at 78% 62%, rgba(255,255,255,.75), transparent 55%),
+        radial-gradient(2px 2px at 86% 22%, rgba(255,255,255,.80), transparent 55%);
+      opacity:.75;
+      pointer-events:none;
+    }
+
+    .page{ display:none; }
+    .page.active{ display:block; }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      color: rgba(255,255,255,.70);
+      font-size: 14px;
+      letter-spacing: .2px;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:999px;
+      background: rgba(0,209,255,.9);
+      box-shadow: 0 0 18px rgba(0,209,255,.7);
+    }
+    h1{
+      margin: 18px 0 8px;
+      font-size: clamp(34px, 5vw, 56px);
+      letter-spacing:-.02em;
+      text-shadow: 0 14px 40px rgba(0,0,0,.35);
+    }
+    .sub{
+      margin: 0 0 22px;
+      color: rgba(255,255,255,.72);
+    }
+    .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+    input{
+      flex:1 1 240px;
+      padding:14px 14px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.18);
+      color:var(--text);
+      outline:none;
+      font-size:16px;
+      letter-spacing:.3px;
+    }
+    input::placeholder{ color: rgba(255,255,255,.45) }
+    input:focus{
+      border-color: rgba(0,209,255,.55);
+      box-shadow: 0 0 0 4px rgba(0,209,255,.15);
+    }
+    button{
+      cursor:pointer;
+      padding:14px 18px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.16);
+      background: linear-gradient(135deg, rgba(0,209,255,.35), rgba(125,92,255,.22), rgba(255,77,205,.20));
+      color: rgba(255,255,255,.95);
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: .2px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.30);
+      user-select:none;
+    }
+    .msg{margin:14px 0 0; min-height:20px; font-size:14px;}
+    .error{color: rgba(255,120,120,.95)}
+    .hint{margin-top:10px; color: rgba(255,255,255,.55); font-size:12px}
+
+    .title2{
+      font-family: "Great Vibes", cursive;
+      font-size: clamp(54px, 7vw, 92px);
+      line-height: 1.0;
+      margin: 0 0 18px;
+      text-shadow: 0 14px 40px rgba(0,0,0,.35);
+    }
+    .message{
+      font-size: clamp(18px, 2.4vw, 22px);
+      line-height: 1.6;
+      color: var(--muted);
+      margin: 0;
+      white-space: pre-wrap;
+    }
+    .footer{
+      margin-top: 22px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      color: rgba(255,255,255,.55);
+      font-size: 12px;
+      align-items:center;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+    a{
+      color: rgba(255,255,255,.9);
+      text-decoration:none;
+      border-bottom: 1px dashed rgba(255,255,255,.35);
+      cursor:pointer;
+    }
+
+    .activate{
+      margin-top: 22px;
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    .activate h3{
+      margin:0 0 10px;
+      font-size: 14px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.72);
+      font-weight: 800;
+    }
+    .activate .small{
+      margin:10px 0 0;
+      font-size: 12px;
+      color: rgba(255,255,255,.58);
+      min-height: 18px;
+    }
+    .linkbox{
+      display:none;
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.14);
+      word-break: break-word;
+    }
+    .linkbox a{
+      border-bottom: none;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <main class="card">
+    <div class="spark"></div>
+
+    <section class="page active" id="page1" aria-label="Gate page">
+      <div class="badge"><span class="dot"></span> Lovely Ellie</div>
+      <h1>Happy Birthday ✨</h1>
+      <p class="sub">Enter the date to continue (DD.MM.YYYY)</p>
+
+      <div class="row">
+        <input id="dob" placeholder="DD.MM.YYYY" autocomplete="off" inputmode="numeric" />
+        <button id="go">Continue →</button>
+      </div>
+
+      <p class="msg" id="msg"></p>
+      <div class="hint">кто же родился в эту дату? только не забудь формат 00.00.0000</div>
+    </section>
+
+    <section class="page" id="page2" aria-label="Message page">
+      <h1 class="title2">Happy Birthday</h1>
+      <p class="message" id="message"></p>
+
+      <div class="activate">
+        <h3>Activation</h3>
+        <div class="row">
+          <input id="pass2" placeholder="Enter password (DD.MM.YYYY)" autocomplete="off" inputmode="numeric" />
+          <button id="activateBtn">Activate</button>
+        </div>
+        <p class="small" id="actMsg"></p>
+
+        <div class="linkbox" id="linkBox">
+          ✅ Links unlocked:
+          <ul style="margin:8px 0 0 18px;">
+            <li><a id="unlockedLink1" href="#" target="_blank" rel="noopener">All roads lead to one day</a></li>
+            <li><a id="unlockedLink2" href="#" target="_blank" rel="noopener">It's time to remember interesting stories</a></li>
+          </ul>
+        </div>
+
+        <p class="small">пароль это номер того что у тебя в у тебя появилось в телеграме сегодня</p>
+      </div>
+
+      <div class="footer">
+        <span class="pill"></span>
+        <span><a id="back">← Back</a></span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const REQUIRED_DATE = "05.02.2009";
+
+    // ✅ SECOND password for the Activation block on page 2:
+    const SECOND_PASSWORD = "#156466";
+
+        // ✅ CHANGE THIS TEXT:
+        const MESSAGE = `Ну что, с днём рождения, солнышко! 🎂✨
+    Пусть вокруг будет много улыбок, тепла и маленьких чудес.
+    А но это ещё не всё… 💖
+    и помни что все что ты вводишь в стороках паролей тебе пригодиться в конце`;
+
+    // ✅ UNLOCKED_URL (change to your link):
+    const UNLOCKED_URL_1 = "https://t.me/+FUVMeLqbRKgxMTky";
+    const UNLOCKED_URL_2 = "https://t.me/+47GeepkxijAzYTIy";
+
+    const page1 = document.getElementById("page1");
+    const page2 = document.getElementById("page2");
+    const input = document.getElementById("dob");
+    const btn = document.getElementById("go");
+    const msg = document.getElementById("msg");
+    const back = document.getElementById("back");
+    const fx = document.getElementById("fx");
+
+    const pass2 = document.getElementById("pass2");
+    const activateBtn = document.getElementById("activateBtn");
+    const actMsg = document.getElementById("actMsg");
+    const linkBox = document.getElementById("linkBox");
+    const unlockedLink1 = document.getElementById("unlockedLink1");
+    const unlockedLink2 = document.getElementById("unlockedLink2");
+
+    document.getElementById("message").textContent = MESSAGE;
+    unlockedLink1.href = UNLOCKED_URL_1;
+    unlockedLink2.href = UNLOCKED_URL_2;
+
+    function normalize(s){
+      return (s || "")
+        .trim()
+        .replace(/\s+/g, "")
+        .replace(/\//g, ".")
+        .replace(/-/g, ".");
+    }
+
+    function showPage2(){
+      page1.classList.remove("active");
+      page2.classList.add("active");
+      fx.style.opacity = "1";
+      startFX();
+    }
+
+    function showPage1(){
+      page2.classList.remove("active");
+      page1.classList.add("active");
+      fx.style.opacity = "0";
+    }
+
+    function goNext(){
+      const v = normalize(input.value);
+      if (v === REQUIRED_DATE){
+        msg.className = "msg";
+        msg.textContent = "Unlocked! 🎉";
+        showPage2();
+      } else {
+        msg.className = "msg error";
+        msg.textContent = "Wrong date. Try again.";
+      }
+    }
+
+    btn.addEventListener("click", goNext);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") goNext(); });
+    back.addEventListener("click", showPage1);
+
+    function activate(){
+      const v = normalize(pass2.value);
+      if (v === SECOND_PASSWORD){
+        actMsg.className = "small";
+        actMsg.textContent = "Activated! Link is now available.";
+        linkBox.style.display = "block";
+        firework(innerWidth * 0.5, innerHeight * 0.78);
+        spawnConfetti(40);
+      } else {
+        actMsg.className = "small error";
+        actMsg.textContent = "Wrong password. Try again.";
+        linkBox.style.display = "none";
+      }
+    }
+    activateBtn.addEventListener("click", activate);
+    pass2.addEventListener("keydown", (e) => { if (e.key === "Enter") activate(); });
+
+    // ====== Confetti + Fireworks (Canvas) ======
+    const canvas = fx;
+    const ctx = canvas.getContext("2d");
+    let running = false;
+
+    function resize(){
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      canvas.width = Math.floor(innerWidth * dpr);
+      canvas.height = Math.floor(innerHeight * dpr);
+      canvas.style.width = innerWidth + "px";
+      canvas.style.height = innerHeight + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    const confetti = [];
+    const particles = [];
+    const rand = (a,b) => a + Math.random() * (b-a);
+    const pick = (arr) => arr[(Math.random()*arr.length)|0];
+    const palette = ["#00d1ff", "#7d5cff", "#ff4dcd", "#ffffff", "#ffd166", "#7CFF6B"];
+
+    function spawnConfetti(count=120){
+      for(let i=0;i<count;i++){
+        confetti.push({
+          x: rand(0, innerWidth),
+          y: rand(-innerHeight*0.2, -20),
+          vx: rand(-0.8, 0.8),
+          vy: rand(1.2, 3.2),
+          w: rand(6, 12),
+          h: rand(10, 18),
+          rot: rand(0, Math.PI*2),
+          vr: rand(-0.08, 0.08),
+          color: pick(palette),
+          life: rand(260, 420)
+        });
+      }
+    }
+
+    function firework(x, y){
+      const n = 90;
+      for(let i=0;i<n;i++){
+        const a = (i / n) * Math.PI * 2 + rand(-0.02, 0.02);
+        const s = rand(2.2, 5.8);
+        particles.push({
+          x, y,
+          vx: Math.cos(a) * s,
+          vy: Math.sin(a) * s,
+          g: 0.06,
+          drag: 0.985,
+          r: rand(1.2, 2.4),
+          color: pick(palette),
+          life: rand(55, 90)
+        });
+      }
+    }
+
+    window.addEventListener("pointerdown", (e) => {
+      if (!page2.classList.contains("active")) return;
+      firework(e.clientX, e.clientY);
+      spawnConfetti(40);
+    });
+
+    let autoTimer = 0;
+    function step(){
+      if (!running) return;
+      ctx.clearRect(0,0,innerWidth,innerHeight);
+
+      for(let i=confetti.length-1;i>=0;i--){
+        const c = confetti[i];
+        c.x += c.vx;
+        c.y += c.vy;
+        c.rot += c.vr;
+        c.vy += 0.006;
+        c.life -= 1;
+
+        if (c.x < -40) c.x = innerWidth + 40;
+        if (c.x > innerWidth + 40) c.x = -40;
+
+        ctx.save();
+        ctx.translate(c.x, c.y);
+        ctx.rotate(c.rot);
+        ctx.globalAlpha = Math.max(0, Math.min(1, c.life / 120));
+        ctx.fillStyle = c.color;
+        ctx.fillRect(-c.w/2, -c.h/2, c.w, c.h);
+        ctx.restore();
+
+        if (c.y > innerHeight + 60 || c.life <= 0) confetti.splice(i, 1);
+      }
+
+      for(let i=particles.length-1;i>=0;i--){
+        const p = particles[i];
+        p.vx *= p.drag;
+        p.vy = p.vy * p.drag + p.g;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 1;
+
+        ctx.globalAlpha = Math.max(0, Math.min(1, p.life / 40));
+        ctx.beginPath();
+        ctx.fillStyle = p.color;
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fill();
+
+        if (p.life <= 0) particles.splice(i, 1);
+      }
+
+      autoTimer++;
+      if (autoTimer % 110 === 0 && page2.classList.contains("active")){
+        firework(rand(innerWidth*0.2, innerWidth*0.8), rand(innerHeight*0.18, innerHeight*0.55));
+      }
+      if (confetti.length < 60 && page2.classList.contains("active") && autoTimer % 35 === 0) spawnConfetti(20);
+
+      requestAnimationFrame(step);
+    }
+
+    function startFX(){
+      if (running) return;
+      running = true;
+      spawnConfetti(160);
+      requestAnimationFrame(step);
+    }
+  </script>
+</body>
+</html>
